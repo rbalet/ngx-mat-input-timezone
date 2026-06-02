@@ -1,189 +1,137 @@
-# International Telephone Input for Angular Material (ngxMatInputTimezone)
+# ngx-mat-input-timezone
 
-An Angular Material package for entering and validating international telephone numbers. It adds a flag dropdown to any input, detects the user's country, displays a relevant placeholder and provides formatting/validation methods.
+Angular Material timezone picker component with searchable dialog selection and reactive forms support.
 
 [![npm version](https://img.shields.io/npm/v/ngx-mat-input-timezone.svg)](https://www.npmjs.com/package/ngx-mat-input-timezone)
 ![NPM](https://img.shields.io/npm/l/ngx-mat-input-timezone)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/ngx-mat-input-timezone)
 ![npm](https://img.shields.io/npm/dm/ngx-mat-input-timezone)
 
-<p align="center" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+<!-- <p align="center" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
   <img src="https://raw.githubusercontent.com/rbalet/ngx-mat-input-timezone/main/example-1.png" />
-</p>
+</p> -->
 
 ## Demo
 
 - https://stackblitz.com/~/github.com/rbalet/ngx-mat-input-timezone
 
-## Caution
+## Features
 
-This is a fork from the [ngx-mat-intl-tel-input](https://github.com/tanansatpal/ngx-mat-intl-tel-input) library whish is not maintained anymore.
-
-**Supports:**
-
-| Angular | ngx-mat-input-timezone |
-| ------- | ---------------------- |
-| >= 18   | >= 19.2.0              |
-| >= 15   | < 19.2.0               |
-
-- Validation with [libphonenumber-js](https://github.com/catamphetamine/libphonenumber-js)
+- Dialog-based timezone selector integrated with Angular Material
+- Search by country, timezone name, IANA id, or UTC offset
+- Optional UTC offset display in list and selected label
+- Optional automatic timezone guess from browser (`Intl.DateTimeFormat`)
+- Works with Angular reactive forms via `ControlValueAccessor`
 
 ## Installation
 
-### Install This Library
-
-`$ npm i ngx-mat-input-timezone@latest`
-
-### Install Dependencies _Optional_
-
-`$ npm i libphonenumber-js@latest`
+```bash
+npm i ngx-mat-input-timezone@latest
+```
 
 ## Usage
 
-### Import
-
-Add `ngxMatInputTimezoneComponent` to your component file:
+### Standalone import
 
 ```ts
-imports: [ngxMatInputTimezoneComponent];
+import { Component } from "@angular/core";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { ngxMatInputTimezoneComponent } from "ngx-mat-input-timezone";
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.html",
+  imports: [ReactiveFormsModule, MatFormFieldModule, ngxMatInputTimezoneComponent],
+})
+export class AppComponent {
+  form = new FormGroup({
+    timezone: new FormControl(""),
+  });
+}
 ```
 
-## Example
-
-Refer to main app in this repository for working example.
+### Template example
 
 ```html
-<form #f="ngForm" [formGroup]="phoneForm">
-  <ngx-mat-input-timezone
-    [preferredCountries]="['us', 'gb']"
-    [enablePlaceholder]="true"
-    [enableSearch]="true"
-    name="phone"
-    formControlName="phone"
-  ></ngx-mat-input-timezone>
+<form [formGroup]="form">
+  <mat-form-field>
+    <ngx-mat-input-timezone
+      formControlName="timezone"
+      placeholder="Select timezone"
+      ariaLabel="Select timezone"
+      enableSearch
+      showOffset
+    ></ngx-mat-input-timezone>
+  </mat-form-field>
 </form>
 ```
 
-```html
-<form #f="ngForm" [formGroup]="phoneForm">
-  <ngx-mat-input-timezone
-    [preferredCountries]="['US', 'GB']"
-    [enablePlaceholder]="true"
-    [enableSearch]="true"
-    name="phone"
-    autocomplete="tel"
-    (countryChanged)="yourComponentMethodToTreatyCountryChangedEvent($event)"
-    formControlName="phone"
-  ></ngx-mat-input-timezone>
-</form>
-```
-
-If you want to show the sample number for the country selected or errors, use mat-hint and mat-error as
-
-```html
-<form #f="ngForm" [formGroup]="phoneForm">
-  <ngx-mat-input-timezone
-    [preferredCountries]="['US', 'GB']"
-    [onlyCountries]="['US', 'GB', 'ES']"
-    [enablePlaceholder]="true"
-    name="phone"
-    autocomplete="tel"
-    formControlName="phone"
-    #phone
-  ></ngx-mat-input-timezone>
-  <mat-hint>e.g. {{phone.$selectedCountry().placeholder}}</mat-hint>
-  <mat-error *ngIf="f.form.controls['phone']?.errors?.required">Required Field</mat-error>
-  <mat-error *ngIf="f.form.controls['phone']?.errors?.validatePhoneNumber"
-    >Invalid Number</mat-error
-  >
-  <mat-error *ngIf="f.form.controls['phone']?.errors?.countryNotAllowed">
-    Country not allowed
-  </mat-error>
-</form>
-```
+Selected value is an IANA timezone string (for example: `Europe/Paris`, `America/New_York`).
 
 ## Inputs
 
-| Options            | Type                      | Default          | Description                                                                                                    |
-| ------------------ | ------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| ariaLabel          | `string`                  | `Select country` | Aria label for the country selector button                                                                     |
-| autocomplete       | `off` \| `tel`            | `off`            | For input autocompletion                                                                                       |
-| cssClass           | `string`                  | `undefined`      | If input custom class are needed                                                                               |
-| countriesName      | `Record<string, string>`  | `COUNTRIES_NAME` | For using different country names in the dropdown (Eg. Multilingual website)                                   |
-| defaultCountry     | `CountryCode`             | `undefined`      | Default country code                                                                                           |
-| enablePlaceholder  | `boolean`                 | `false`          | Input placeholder text, which adapts to the country selected.                                                  |
-| enableSearch       | `boolean`                 | `false`          | Whether to display a search bar to help filter down the list of countries                                      |
-| format             | `string` \*\*\*\*         | `default`        | Format of "as you type" input. Possible values: national, international, default                               |
-| hideAreaCodes      | `boolean`                 | `false`          | Hide the Area codes in the country dropdown selection                                                          |
-| maxLength          | `number`                  | `15`             | max length of the input.                                                                                       |
-| onlyCountries      | `string[]`                | `[]`             | List of manually selected country abbreviations, which will appear in the dropdown.                            |
-| placeholder        | `string`                  | `undefined`      | Placeholder for the input component.                                                                           |
-| preferredCountries | `string[]`                | `[]`             | List of country abbreviations, which will appear at the top.                                                   |
-| resetOnChange      | `boolean`                 | `false`          | Reset input on country change                                                                                  |
-| searchPlaceholder  | `string`                  | `Search ...`     | Placeholder for the search input                                                                               |
-| validation         | `isPossible` \| `isValid` | `isValid`        | Change the validation type                                                                                     |
-| separateDialCode   | `boolean`                 | `false`          | Whether to separate the dial code from the input _Note: you'll have to manually add margin-left to your input_ |
+| Input               | Type                | Default           | Description                                                |
+| ------------------- | ------------------- | ----------------- | ---------------------------------------------------------- |
+| `ariaLabel`         | `string`            | `Select timezone` | Dialog title and selector aria label                       |
+| `autocomplete`      | `off \| tel`        | `off`             | Kept for API compatibility                                 |
+| `cssClass`          | `string`            | `undefined`       | Kept for API compatibility                                 |
+| `errorStateMatcher` | `ErrorStateMatcher` | Angular default   | Custom Material error matcher                              |
+| `maxLength`         | `string \| number`  | `15`              | Kept for API compatibility                                 |
+| `name`              | `string`            | `undefined`       | Kept for API compatibility                                 |
+| `placeholder`       | `string`            | `""`              | Text shown when no timezone selected                       |
+| `guess`             | `boolean`           | `true`            | Auto-select browser timezone on init when control is empty |
+| `showOffset`        | `boolean`           | `true`            | Show UTC offset in dialog and selected label               |
+| `offsetName`        | `string`            | `UTC`             | Prefix used for offset display (for example `UTC+02:00`)   |
+| `enableSearch`      | `boolean`           | `false`           | Show search field in dialog                                |
+| `searchPlaceholder` | `string`            | `Search`          | Search field placeholder                                   |
+| `noResultsLabel`    | `string`            | `No results`      | Label shown when no timezone matches                       |
+| `required`          | `boolean`           | `false`           | Material form-field required state                         |
+| `disabled`          | `boolean`           | `false`           | Disable selector interaction                               |
+| `resetOnChange`     | `boolean`           | `false`           | Kept for API compatibility                                 |
+| `separateDialCode`  | `boolean`           | `false`           | Kept for API compatibility                                 |
+| `hideAreaCodes`     | `boolean`           | `false`           | Kept for API compatibility                                 |
 
 ## Outputs
 
-| Options        | Type                    | Default     | Description       |
-| -------------- | ----------------------- | ----------- | ----------------- |
-| countryChanged | `EventEmitter<Country>` | `undefined` | On country change |
+No custom outputs are currently exposed.
 
-## Css variable
+Use your form control value changes:
 
-| Name                                        | Default        | Explanation                                                                                             |
-| ------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------- |
-| `--ngxMatInputTimezone-opacity`             | `0`            | If you wish both, the country flag and the placeholder to be shown by default                           |
-| `--ngxMatInputTimezone-selector-opacity`    | `0`            | If you wish the country flag to be shown by default                                                     |
-| `--ngxMatInputTimezone-placeholder-opacity` | `0`            | If you wish the placeholder flag to be shown by default                                                 |
-| `--ngxMatInputTimezone-flag-display`        | `inline-block` | If you wish to hide the country flag                                                                    |
-| `--ngxMatInputTimezone-menu-flag-display`   | `inline-block` | If you wish to hide the country flag inside the menu only                                               |
-| `--ngxMatInputTimezone-gap`                 | `32px`         | If you wish to change the gap between the flag and the input field (Only works with `separateDialCode`) |
+```ts
+this.form.get("timezone")?.valueChanges.subscribe((timezone) => {
+  console.log(timezone);
+});
+```
 
-## Validator
+## Styling notes
 
-#### Manual validator usage
+The selector opens a Material dialog and includes:
 
-If you need to manually add the validator, use the factory:
+- Search field (optional)
+- Grouped timezone list
+- Highlight for currently selected timezone
 
-| Name                                  | Description                                         | Example                                                                          |
-| ------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `ngxMatInputTimezoneValidatorFactory` | Validator factory for phone and country restriction | `phoneControl.addValidators([ngxMatInputTimezoneValidatorFactory(['US','GB'])])` |
+You can override styles in your app by targeting the component classes in:
 
-## Library Contributions
+- `.timezone-select-dialog`
+- `.timezone-list-item`
+- `.timezone-name.selected`
 
-- Fork repo.
-- Go to `./projects/ngx-mat-input-timezone`
-- Update `./src/lib` with new functionality.
-- Update README.md
-- Pull request.
+## Contributing
 
-### Helpful commands
+- Fork repo
+- Go to `projects/ngx-mat-input-timezone`
+- Update `src/lib`
+- Update `README.md`
+- Open a pull request
 
-- Build lib: `$ npm run build_lib`
-- Copy license and readme files: `$ npm run copy-files`
-- Create package: `$ npm run npm_pack`
-- Build lib and create package: `$ npm run package`
+## Helpful commands
 
-### Use locally
+- Build lib: `npm run build`
+- Test: `npm run test`
+- Lint: `npm run lint`
 
-After building and creating package, you can use it locally too.
+## License
 
-In your project run:
-
-`$ npm install --save {{path to your local '*.tgz' package file}}`
-
-## Authors and acknowledgment
-
-- maintainer [Raphaël Balet](https://github.com/rbalet)
-- Forked from [ngx-mat-intl-tel-input](https://github.com/tanansatpal/ngx-mat-intl-tel-input)
-
-### Contributors
-
-Contributions are welcome! See our [contribution notes](CONTRIBUTING.md).
-
-[<img alt="Contributor rbalet" src="https://avatars.githubusercontent.com/u/44493964?v=4&size=128" width=64>](https://github.com/rbalet)
-[<img alt="Contributor ChristianLoosliVGT" src="https://avatars.githubusercontent.com/u/126682673?v=4&size=128" width=64>](https://github.com/ChristianLoosliVGT)
-
-[![BuyMeACoffee](https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png)](https://www.buymeacoffee.com/widness)
+MIT
