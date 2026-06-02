@@ -1,6 +1,5 @@
 import { FocusMonitor } from "@angular/cdk/a11y";
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
-import { AsyncPipe } from "@angular/common";
 import {
   booleanAttribute,
   ChangeDetectionStrategy,
@@ -23,12 +22,15 @@ import {
   NgForm,
   ReactiveFormsModule,
 } from "@angular/forms";
-import { ErrorStateMatcher, MatOptgroup, MatOption } from "@angular/material/core";
+import { MatButtonModule } from "@angular/material/button";
+import { ErrorStateMatcher, MatRippleModule } from "@angular/material/core";
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatFormFieldControl } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
-import { MatSelect } from "@angular/material/select";
-import { NgxMatSelectSearchModule } from "ngx-mat-select-search";
-import { map, Observable, startWith, Subject } from "rxjs";
+import { Subject } from "rxjs";
+import {
+  NgxMatInputTimezoneDialog,
+  NgxMatInputTimezoneDialogData,
+} from "./ngx-mat-input-timezone-dialog/ngx-mat-input-timezone.dialog";
 import { countryZones } from "./ngx-mat-input-timezone.data";
 
 interface TimezoneGroup {
@@ -57,18 +59,11 @@ class ngxMatInputTimezoneBase {
     // Forms
     FormsModule,
     ReactiveFormsModule,
-    MatInputModule,
 
     // Mat
-    MatSelect,
-    MatOption,
-    MatOptgroup,
-
-    // Pipe
-    AsyncPipe,
-
-    // Vendors
-    NgxMatSelectSearchModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatRippleModule,
   ],
 })
 export class ngxMatInputTimezoneComponent
@@ -76,8 +71,7 @@ export class ngxMatInputTimezoneComponent
   implements OnInit, DoCheck, OnDestroy
 {
   timezoneGroups!: TimezoneGroup[];
-  timezoneGroupsOptions!: Observable<TimezoneGroup[]>;
-  searchControl = new FormControl();
+  selectedTimezoneLabel = "";
 
   static nextId = 0;
 
@@ -89,7 +83,7 @@ export class ngxMatInputTimezoneComponent
   }
 
   @Input() autocomplete: "off" | "tel" = "off";
-  @Input() ariaLabel = "Select country";
+  @Input() ariaLabel = "Select timezone";
   @Input() cssClass?: string;
   @Input() errorStateMatcher: ErrorStateMatcher = this._defaultErrorStateMatcher;
   @Input() maxLength: string | number = 15;
@@ -139,7 +133,7 @@ export class ngxMatInputTimezoneComponent
   describedBy = "";
   isDialCodeFocused = false;
   isPhoneInputFocused = false;
-  value?: any;
+  value?: string;
 
   onTouched = () => {};
   propagateChange = (_: any) => {};
@@ -150,6 +144,7 @@ export class ngxMatInputTimezoneComponent
     private _changeDetectorRef: ChangeDetectorRef,
     private _focusMonitor: FocusMonitor,
     private _elementRef: ElementRef<HTMLElement>,
+    private _dialog: MatDialog,
     @Optional() @Self() _ngControl: NgControl,
     @Optional() _parentForm: NgForm,
     @Optional() _parentFormGroup: FormGroupDirective,
@@ -201,6 +196,47 @@ export class ngxMatInputTimezoneComponent
     }
   }
 
+  openTimezoneDialog(): void {
+    if (this.disabled) {
+      return;
+    }
+
+    const dialogData: NgxMatInputTimezoneDialogData = {
+      ariaLabel: this.ariaLabel,
+      enableSearch: this.enableSearch,
+      searchPlaceholder: this.searchPlaceholder,
+      noResultsLabel: this.noResultsLabel,
+      showOffset: this.showOffset,
+      offsetName: this.offsetName,
+      timezoneGroups: this.timezoneGroups,
+    };
+
+    const dialogRef = this._dialog.open<
+      NgxMatInputTimezoneDialog,
+      NgxMatInputTimezoneDialogData,
+      string
+    >(NgxMatInputTimezoneDialog, {
+      width: "480px",
+      maxWidth: "90vw",
+      maxHeight: "80vh",
+      autoFocus: this.enableSearch ? "dialog" : "first-tabbable",
+      restoreFocus: true,
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe((selectedTimezone) => {
+      if (selectedTimezone) {
+        this.onTimezoneSelect(selectedTimezone);
+      }
+    });
+  }
+
+  onTimezoneSelect(zone: string): void {
+    this.writeValue(zone);
+    this.propagateChange(zone);
+    this.onTouched();
+  }
+
   updateErrorState() {
     if (
       this.ngControl &&
@@ -220,8 +256,6 @@ export class ngxMatInputTimezoneComponent
 
   public onDialCodeFocus(): void {
     this.isDialCodeFocused = true;
-    // In separated mode, button focus shouldn't make mat-form-field appear focused
-    // Only clear focused state if phone input is not focused
     if (this.separateDialCode && !this.isPhoneInputFocused) {
       this.focused = false;
       this.stateChanges.next();
@@ -230,7 +264,6 @@ export class ngxMatInputTimezoneComponent
 
   public onDialCodeBlur(): void {
     this.isDialCodeFocused = false;
-    // In separated mode, keep mat-form-field focused if phone input is focused
     if (this.separateDialCode) {
       if (!this.isPhoneInputFocused) {
         this.focused = false;
@@ -259,7 +292,10 @@ export class ngxMatInputTimezoneComponent
   }
 
   writeValue(value: any): void {
+    this.value = value;
+    this.selectedTimezoneLabel = this.getTimezoneDisplayLabel(value);
     this._changeDetectorRef.markForCheck();
+    this.stateChanges.next(undefined);
   }
 
   setDescribedByIds(ids: string[]) {
@@ -267,12 +303,14 @@ export class ngxMatInputTimezoneComponent
   }
 
   onContainerClick(event: MouseEvent): void {
-    if ((event.target as Element).tagName.toLowerCase() !== "input") {
-      this._elementRef.nativeElement.querySelector("input")!.focus();
+    if ((event.target as Element).tagName.toLowerCase() !== "button") {
+      this.openTimezoneDialog();
     }
   }
 
   reset() {
+    this.value = undefined;
+    this.selectedTimezoneLabel = "";
     this.propagateChange(null);
 
     this._changeDetectorRef.markForCheck();
@@ -281,14 +319,13 @@ export class ngxMatInputTimezoneComponent
 
   private _init() {
     this._initData();
-    this.timezoneGroupsOptions = this.searchControl.valueChanges.pipe(
-      startWith(""),
-      map((query) => (query ? this.filter(query) : this.timezoneGroups.slice())),
-    );
 
-    if (!this.ngControl.control?.value && this.guess) {
+    if (!this.ngControl?.control?.value && this.guess) {
       this.guessedTimezone();
       this._changeDetectorRef.detectChanges();
+    } else {
+      this.value = this.ngControl?.control?.value;
+      this.selectedTimezoneLabel = this.getTimezoneDisplayLabel(this.value || "");
     }
   }
 
@@ -309,27 +346,8 @@ export class ngxMatInputTimezoneComponent
               offset: this.offsetOfTimezone(x),
             };
       });
-      return { iso, country: val.name, zones };
+      return { iso, country: val.name, zones, showGroup: zones.length > 1 };
     });
-  }
-
-  filter(query: string): TimezoneGroup[] {
-    const result: TimezoneGroup[] = [];
-
-    for (const z of this.timezoneGroups) {
-      if (z.country && z.country.toLowerCase().includes(query.toLowerCase())) {
-        result.push(z);
-      } else {
-        const results = z.zones.filter((x) => x.name.toLowerCase().includes(query.toLowerCase()));
-        if (results.length > 0) {
-          z.zones = results;
-          z.showGroup = z.zones.length > 1;
-          result.push(z);
-        }
-      }
-    }
-
-    return result;
   }
 
   formatTimezoneString(zone: string): string {
@@ -387,9 +405,23 @@ export class ngxMatInputTimezoneComponent
 
   guessedTimezone(): void {
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (this.ngControl.control) {
-      this.ngControl.control.setValue(zone);
+    this.writeValue(zone);
+    this.propagateChange(zone);
+  }
+
+  getTimezoneDisplayLabel(zone: string): string {
+    if (!zone) {
+      return "";
     }
+
+    for (const group of this.timezoneGroups ?? []) {
+      const timezone = group.zones.find((item) => item.zone === zone);
+      if (timezone) {
+        return `${timezone.name} ${this.showOffset ? this.formatOffset(timezone.offset) : ""}`.trim();
+      }
+    }
+
+    return zone;
   }
 
   private rjust(value: string, width: number, padding = "0"): string {

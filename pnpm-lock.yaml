@@ -41,9 +41,6 @@ importers:
       libphonenumber-js:
         specifier: 1.13.4
         version: 1.13.4
-      ngx-mat-select-search:
-        specifier: ^8.0.6
-        version: 8.0.6(@angular/material@21.2.13(6a824fea910a73be10d71e7da2e157b7))
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
@@ -3845,11 +3842,6 @@ packages:
     peerDependenciesMeta:
       tailwindcss:
         optional: true
-
-  ngx-mat-select-search@8.0.6:
-    resolution: {integrity: sha512-pqAMaNc87vUXdM8Aq59HHXoacjgqn5xSlVjzEQfzfukQZBYVmlZFICwYUjBbSuMbtWqQ5RjPRvUeXiHJcGnIPA==}
-    peerDependencies:
-      '@angular/material': ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0 || ^22.0.0
 
   node-addon-api@6.1.0:
     resolution: {integrity: sha512-+eawOlIgy680F0kBzPUNFhMZGtJ1YmqM6l4+Crf4IkImjYrO/mqPwRMh352g23uIaQKFItcQ64I7KMaJxHgAVA==}
@@ -8976,11 +8968,6 @@ snapshots:
       typescript: 5.9.3
     optionalDependencies:
       rollup: 4.61.0
-
-  ngx-mat-select-search@8.0.6(@angular/material@21.2.13(6a824fea910a73be10d71e7da2e157b7)):
-    dependencies:
-      '@angular/material': 21.2.13(6a824fea910a73be10d71e7da2e157b7)
-      tslib: 2.8.1
 
   node-addon-api@6.1.0:
     optional: true

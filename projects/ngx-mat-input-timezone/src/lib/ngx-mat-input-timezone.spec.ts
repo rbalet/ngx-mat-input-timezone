@@ -32,14 +32,6 @@ describe("ngxMatInputTimezoneComponent", () => {
       expect(component.shouldLabelFloat).toBe(true);
     });
 
-    it("should return true for shouldLabelFloat when value exists", () => {
-      component.focused = false;
-      component.value = "Europe/Paris";
-
-      expect(component.shouldLabelFloat).toBe(true);
-      expect(component.empty).toBe(false);
-    });
-
     it("should return false for shouldLabelFloat when not focused and empty", () => {
       component.focused = false;
       component.value = undefined;
@@ -49,96 +41,57 @@ describe("ngxMatInputTimezoneComponent", () => {
     });
   });
 
-  describe("dial code focus behavior", () => {
-    it("should set isDialCodeFocused on focus", () => {
-      component.isDialCodeFocused = false;
+  describe("template rendering", () => {
+    it("should render timezone selector button", () => {
+      const button = fixture.nativeElement.querySelector(".timezone-selector");
 
-      component.onDialCodeFocus();
-
-      expect(component.isDialCodeFocused).toBe(true);
+      expect(button).toBeTruthy();
     });
 
-    it("should clear focused state in separated dial mode when phone input is not focused", () => {
-      const stateChangesSpy = vi.spyOn(component.stateChanges, "next");
-      component.separateDialCode = true;
-      component.focused = true;
-      component.isPhoneInputFocused = false;
+    it("should show placeholder when no timezone is selected", () => {
+      const localFixture = TestBed.createComponent(ngxMatInputTimezoneComponent);
+      const localComponent = localFixture.componentInstance;
 
-      component.onDialCodeFocus();
+      localComponent.guess = false;
+      localComponent.placeholder = "Select timezone";
+      localFixture.detectChanges();
 
-      expect(component.focused).toBe(false);
-      expect(stateChangesSpy).toHaveBeenCalled();
-    });
+      const button = localFixture.nativeElement.querySelector(".timezone-selector-label");
 
-    it("should not change focused state in non separated dial mode", () => {
-      component.separateDialCode = false;
-      component.focused = true;
-
-      component.onDialCodeFocus();
-
-      expect(component.focused).toBe(true);
-    });
-
-    it("should clear dial code focus on blur", () => {
-      component.isDialCodeFocused = true;
-
-      component.onDialCodeBlur();
-
-      expect(component.isDialCodeFocused).toBe(false);
-    });
-
-    it("should keep focused state on blur in separated mode when phone input is focused", () => {
-      const stateChangesSpy = vi.spyOn(component.stateChanges, "next");
-      component.separateDialCode = true;
-      component.focused = true;
-      component.isPhoneInputFocused = true;
-
-      component.onDialCodeBlur();
-
-      expect(component.focused).toBe(true);
-      expect(stateChangesSpy).toHaveBeenCalled();
-    });
-
-    it("should clear focused state on blur in separated mode when phone input is not focused", () => {
-      component.separateDialCode = true;
-      component.focused = true;
-      component.isPhoneInputFocused = false;
-
-      component.onDialCodeBlur();
-
-      expect(component.focused).toBe(false);
+      expect(button.textContent.trim()).toBe("Select timezone");
     });
   });
 
-  describe("template rendering", () => {
-    it("should render the input element", () => {
-      const input = fixture.nativeElement.querySelector("input");
+  describe("dialog behavior", () => {
+    it("should open timezone selector when enabled", () => {
+      const dialogOpenSpy = vi.spyOn(component["_dialog"], "open");
 
-      expect(input).toBeTruthy();
-      expect(input.type).toBe("text");
+      component.openTimezoneDialog();
+
+      expect(dialogOpenSpy).toHaveBeenCalled();
     });
 
-    it("should bind placeholder value", () => {
-      component.placeholder = "Select timezone";
-      fixture.detectChanges();
+    it("should not open timezone selector when disabled", () => {
+      component.setDisabledState(true);
+      const dialogOpenSpy = vi.spyOn(component["_dialog"], "open");
 
-      const input = fixture.nativeElement.querySelector("input");
+      component.openTimezoneDialog();
 
-      expect(input.placeholder).toBe("Select timezone");
+      expect(dialogOpenSpy).not.toHaveBeenCalled();
+    });
+
+    it("should propagate value and close dialog on timezone selection", () => {
+      const changeSpy = vi.fn();
+      component.registerOnChange(changeSpy);
+
+      component.onTimezoneSelect("Europe/Paris");
+
+      expect(changeSpy).toHaveBeenCalledWith("Europe/Paris");
+      expect(component.value).toBe("Europe/Paris");
     });
   });
 
   describe("ControlValueAccessor integration", () => {
-    it("should register and call onChange callback", () => {
-      const mockCallback = vi.fn();
-      component.registerOnChange(mockCallback);
-      component.value = "UTC";
-
-      component.onValueChange();
-
-      expect(mockCallback).toHaveBeenCalledWith("UTC");
-    });
-
     it("should register onTouched callback", () => {
       const mockCallback = vi.fn();
       component.registerOnTouched(mockCallback);
@@ -168,6 +121,7 @@ describe("ngxMatInputTimezoneComponent", () => {
       component.writeValue("Europe/Zurich");
 
       expect(markForCheckSpy).toHaveBeenCalled();
+      expect(component.value).toBe("Europe/Zurich");
     });
 
     it("should reset propagated value to null", () => {
@@ -181,28 +135,15 @@ describe("ngxMatInputTimezoneComponent", () => {
   });
 
   describe("container interaction", () => {
-    it("should focus input when container is clicked outside input", () => {
-      const input: HTMLInputElement = fixture.nativeElement.querySelector("input");
-      const focusSpy = vi.spyOn(input, "focus");
+    it("should open selector when container is clicked outside button", () => {
+      const openDialogSpy = vi.spyOn(component, "openTimezoneDialog");
       const clickEvent = {
         target: document.createElement("div"),
       } as unknown as MouseEvent;
 
       component.onContainerClick(clickEvent);
 
-      expect(focusSpy).toHaveBeenCalled();
-    });
-
-    it("should not focus input when input is clicked", () => {
-      const input: HTMLInputElement = fixture.nativeElement.querySelector("input");
-      const focusSpy = vi.spyOn(input, "focus");
-      const clickEvent = {
-        target: input,
-      } as unknown as MouseEvent;
-
-      component.onContainerClick(clickEvent);
-
-      expect(focusSpy).not.toHaveBeenCalled();
+      expect(openDialogSpy).toHaveBeenCalled();
     });
   });
 

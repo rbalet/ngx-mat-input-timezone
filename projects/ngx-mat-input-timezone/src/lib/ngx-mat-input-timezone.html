@@ -1,26 +1,11 @@
-<mat-select [formControl]="$any(ngControl.control)" [placeholder]="placeholder">
-  <mat-option>
-    <ngx-mat-select-search
-      [formControl]="searchControl"
-      [placeholderLabel]="searchPlaceholder"
-      [noEntriesFoundLabel]="noResultsLabel"
-    ></ngx-mat-select-search>
-  </mat-option>
-  @for (option of timezoneGroupsOptions | async; track option.country) {
-    @if (option.showGroup || option.zones.length > 1) {
-      <mat-optgroup [label]="option.country + ' (' + option.zones.length + ')'">
-        @for (zone of option.zones; track zone.zone) {
-          <mat-option [value]="zone.zone">
-            {{ zone.name }}
-            <span>{{ showOffset ? formatOffset(zone.offset) : "" }}</span>
-          </mat-option>
-        }
-      </mat-optgroup>
-    } @else {
-      <mat-option [value]="option.zones[0].zone">
-        {{ option.zones[0].name }}
-        <span>{{ showOffset ? formatOffset(option.zones[0].offset) : "" }}</span>
-      </mat-option>
-    }
-  }
-</mat-select>
+<button
+  type="button"
+  class="timezone-selector"
+  (click)="openTimezoneDialog()"
+  [disabled]="disabled"
+  [attr.aria-label]="ariaLabel"
+>
+  <span class="timezone-selector-label" [class.placeholder]="!selectedTimezoneLabel">
+    {{ selectedTimezoneLabel || placeholder || "Select timezone" }}
+  </span>
+</button>

@@ -1,0 +1,74 @@
+<div class="timezone-select-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ ariaLabel }}</h2>
+
+    <button
+      matIconButton
+      type="button"
+      class="close-button"
+      [mat-dialog-close]
+      aria-label="Close dialog"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    @if (enableSearch) {
+      <mat-form-field class="search-field" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ data.searchPlaceholder }}</mat-label>
+        <input
+          #searchInput
+          matInput
+          type="text"
+          [formControl]="searchControl"
+          [placeholder]="data.searchPlaceholder"
+          autocomplete="off"
+        />
+        @if (searchControl.value) {
+          <button
+            matSuffix
+            matIconButton
+            type="button"
+            aria-label="Clear search"
+            (click)="searchControl.setValue('')"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+    }
+
+    <div class="timezone-list-container">
+      @if (filteredTimezoneGroups.length === 0) {
+        <div class="no-results">{{ noResultsLabel }}</div>
+      }
+
+      <mat-list>
+        @for (option of filteredTimezoneGroups; track option.iso) {
+          @if (option.showGroup || option.zones.length > 1) {
+            <div class="timezone-group-title">{{ option.country }} ({{ option.zones.length }})</div>
+          }
+
+          @for (zone of option.zones; track zone.zone) {
+            <mat-list-item
+              class="timezone-list-item"
+              (click)="onTimezoneSelect(zone.zone)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="onTimezoneSelect(zone.zone)"
+              (keydown.space)="onTimezoneSelect(zone.zone); $event.preventDefault()"
+            >
+              <div class="timezone-list-item-content">
+                <span class="timezone-name">{{ zone.name }}</span>
+                @if (showOffset) {
+                  <span class="timezone-offset">{{ formatOffset(zone.offset) }}</span>
+                }
+              </div>
+            </mat-list-item>
+          }
+        }
+      </mat-list>
+    </div>
+  </mat-dialog-content>
+</div>
