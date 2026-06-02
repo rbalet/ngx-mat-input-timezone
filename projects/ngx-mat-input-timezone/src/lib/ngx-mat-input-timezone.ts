@@ -304,7 +304,9 @@ export class ngxMatInputTimezoneComponent
   }
 
   onContainerClick(event: MouseEvent): void {
-    if ((event.target as Element).tagName.toLowerCase() !== "button") {
+    const clickedElement = event.target as Element | null;
+
+    if (!clickedElement?.closest("button")) {
       this.openTimezoneDialog();
     }
   }

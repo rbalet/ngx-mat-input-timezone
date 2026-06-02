@@ -145,6 +145,21 @@ describe("ngxMatInputTimezoneComponent", () => {
 
       expect(openDialogSpy).toHaveBeenCalled();
     });
+
+    it("should not reopen selector when container click originates inside button", () => {
+      const openDialogSpy = vi.spyOn(component, "openTimezoneDialog");
+      const button = document.createElement("button");
+      const label = document.createElement("span");
+      button.appendChild(label);
+
+      const clickEvent = {
+        target: label,
+      } as unknown as MouseEvent;
+
+      component.onContainerClick(clickEvent);
+
+      expect(openDialogSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe("lifecycle", () => {
