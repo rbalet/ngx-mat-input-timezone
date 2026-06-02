@@ -60,9 +60,13 @@
               (keydown.space)="onTimezoneSelect(zone.zone); $event.preventDefault()"
             >
               <div class="timezone-list-item-content">
-                <span class="timezone-name">{{ zone.name }}</span>
+                <span class="timezone-name" [class.selected]="isSelected(zone.zone)">
+                  {{ zone.name }}
+                </span>
                 @if (showOffset) {
-                  <span class="timezone-offset">{{ formatOffset(zone.offset) }}</span>
+                  <span class="timezone-offset" [class.selected]="isSelected(zone.zone)">
+                    {{ formatOffset(zone.offset) }}
+                  </span>
                 }
               </div>
             </mat-list-item>

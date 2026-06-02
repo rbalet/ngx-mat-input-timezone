@@ -208,6 +208,7 @@ export class ngxMatInputTimezoneComponent
       noResultsLabel: this.noResultsLabel,
       showOffset: this.showOffset,
       offsetName: this.offsetName,
+      selectedTimezone: this.value || null,
       timezoneGroups: this.timezoneGroups,
     };
 

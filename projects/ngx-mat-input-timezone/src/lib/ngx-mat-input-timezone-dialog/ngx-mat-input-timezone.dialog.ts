@@ -22,6 +22,7 @@ export interface NgxMatInputTimezoneDialogData {
   noResultsLabel: string;
   showOffset: boolean;
   offsetName: string;
+  selectedTimezone: string | null;
   timezoneGroups: TimezoneGroup[];
 }
 
@@ -81,6 +82,10 @@ export class NgxMatInputTimezoneDialog implements OnInit {
 
   onTimezoneSelect(zone: string): void {
     this.dialogRef.close(zone);
+  }
+
+  isSelected(zone: string): boolean {
+    return this.data.selectedTimezone === zone;
   }
 
   formatOffset(offset: string): string {
