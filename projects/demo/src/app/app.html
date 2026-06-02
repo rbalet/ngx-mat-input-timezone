@@ -1,0 +1,21 @@
+<div style="margin: 50px">
+  <h3 id="timezoneInput">Test Timezone Input Form</h3>
+  <br />
+
+  <form #f1="ngForm" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field>
+      <ngx-mat-input-timezone
+        enablePlaceholder
+        enableSearch
+        formControlName="timezone"
+        required
+        #timezone
+      ></ngx-mat-input-timezone>
+    </mat-form-field>
+
+    <div class="buttons-container">
+      <button mat-stroked-button>Submit</button>
+      <button type="reset" mat-stroked-button (click)="onReset()">Reset</button>
+    </div>
+  </form>
+</div>
