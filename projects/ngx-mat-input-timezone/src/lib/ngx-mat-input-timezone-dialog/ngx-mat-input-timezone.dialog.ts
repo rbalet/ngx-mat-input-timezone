@@ -95,6 +95,7 @@ export class NgxMatInputTimezoneDialog implements OnInit {
   private filter(query: string): TimezoneGroup[] {
     const result: TimezoneGroup[] = [];
     const normalizedQuery = query.toLowerCase();
+    const seenZones = new Set<string>();
 
     for (const timezoneGroup of this.data.timezoneGroups) {
       if (!normalizedQuery) {
@@ -103,19 +104,23 @@ export class NgxMatInputTimezoneDialog implements OnInit {
           zones: [...timezoneGroup.zones],
           showGroup: timezoneGroup.zones.length > 1,
         });
-      } else if (timezoneGroup.country.toLowerCase().includes(normalizedQuery)) {
-        result.push({
-          ...timezoneGroup,
-          zones: [...timezoneGroup.zones],
-          showGroup: timezoneGroup.zones.length > 1,
-        });
       } else {
-        const zones = timezoneGroup.zones.filter((zone) => {
-          return (
-            zone.name.toLowerCase().includes(normalizedQuery) ||
-            zone.zone.toLowerCase().includes(normalizedQuery) ||
-            zone.offset.includes(normalizedQuery)
-          );
+        const matchedZones = timezoneGroup.country.toLowerCase().includes(normalizedQuery)
+          ? timezoneGroup.zones
+          : timezoneGroup.zones.filter((zone) => {
+              return (
+                zone.name.toLowerCase().includes(normalizedQuery) ||
+                zone.zone.toLowerCase().includes(normalizedQuery) ||
+                zone.offset.includes(normalizedQuery)
+              );
+            });
+
+        const zones = matchedZones.filter((zone) => {
+          if (seenZones.has(zone.zone)) {
+            return false;
+          }
+          seenZones.add(zone.zone);
+          return true;
         });
 
         if (zones.length > 0) {
