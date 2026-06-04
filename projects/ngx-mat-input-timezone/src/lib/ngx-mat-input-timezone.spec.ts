@@ -134,6 +134,17 @@ describe("ngxMatInputTimezoneComponent", () => {
     });
   });
 
+
+
+  describe("timezone group labels", () => {
+    it("should include city and country for countries with a single timezone", () => {
+      const iranGroup = component.timezoneGroups.find((group) => group.iso === "IR");
+
+      expect(iranGroup).toBeTruthy();
+      expect(iranGroup?.zones[0].name).toBe("Tehran, Iran");
+    });
+  });
+
   describe("container interaction", () => {
     it("should open selector when container is clicked outside button", () => {
       const openDialogSpy = vi.spyOn(component, "openTimezoneDialog");
