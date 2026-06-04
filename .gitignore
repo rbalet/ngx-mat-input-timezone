@@ -9,6 +9,7 @@
 
 # dependencies
 /node_modules
+/projects/*/node_modules/
 .angular
 
 # profiling files

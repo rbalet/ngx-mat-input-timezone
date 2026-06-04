@@ -1,5 +1,5 @@
 packages:
-  - "projects/*"
+  - "projects/ngx-mat-input-timezone"
 
 allowBuilds:
   "@parcel/watcher": true
