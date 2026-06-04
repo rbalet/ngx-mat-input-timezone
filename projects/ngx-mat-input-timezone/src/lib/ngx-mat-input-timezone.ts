@@ -345,7 +345,7 @@ export class ngxMatInputTimezoneComponent
             }
           : {
               zone: x,
-              name: val.name,
+              name: `${this.formatTimezoneString(x)}, ${val.name}`,
               offset: this.offsetOfTimezone(x),
             };
       });
